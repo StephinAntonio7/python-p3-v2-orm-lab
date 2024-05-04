@@ -1,6 +1,7 @@
 # lib/employee.py
 from __init__ import CURSOR, CONN
 from department import Department
+from review import Review
 
 class Employee:
 
@@ -97,11 +98,7 @@ class Employee:
 
     def update(self):
         """Update the table row corresponding to the current Employee instance."""
-        sql = """
-            UPDATE employees
-            SET name = ?, job_title = ?, department_id = ?
-            WHERE id = ?
-        """
+        sql = """UPDATE employees SET name = ?, job_title = ?, department_id = ? WHERE id = ?"""
         CURSOR.execute(sql, (self.name, self.job_title,
                              self.department_id, self.id))
         CONN.commit()
@@ -110,10 +107,7 @@ class Employee:
         """Delete the table row corresponding to the current Employee instance,
         delete the dictionary entry, and reassign id attribute"""
 
-        sql = """
-            DELETE FROM employees
-            WHERE id = ?
-        """
+        sql = """DELETE FROM employees WHERE id = ?"""
 
         CURSOR.execute(sql, (self.id,))
         CONN.commit()
@@ -164,11 +158,7 @@ class Employee:
     @classmethod
     def find_by_id(cls, id):
         """Return Employee object corresponding to the table row matching the specified primary key"""
-        sql = """
-            SELECT *
-            FROM employees
-            WHERE id = ?
-        """
+        sql = """SELECT * FROM employees WHERE id = ?"""
 
         row = CURSOR.execute(sql, (id,)).fetchone()
         return cls.instance_from_db(row) if row else None
@@ -187,4 +177,14 @@ class Employee:
 
     def reviews(self):
         """Return list of reviews associated with current employee"""
-        pass
+        sql= '''SELECT * FROM reviews WHERE employee_id = ?'''
+        review_tuple = CURSOR.execute(sql, [self.id]).fetchall()
+        review_list = []
+        for review in review_tuple:
+            this_review = Review(year=review[1], summary=review[2], employee_id=review[3])
+            this_review.id = review[0]
+            review_list.append(this_review)
+
+        print(review_tuple)
+        print(review_list)
+        return review_list
